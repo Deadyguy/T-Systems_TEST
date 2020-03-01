@@ -1,26 +1,52 @@
 "use strict";
 const {Builder, By, Key, until} = require("selenium-webdriver");
+//const {describe, before, after} = require("mocha");
+const {assert} = require("chai");
+//const {before, after} = require("jasmine-core");
 
-async function example() {
-    let driver = await new Builder().forBrowser("chrome").build();
-    await driver.manage().window().maximize();
-    await driver.get("https://www.avito.ru/voronezh");
-    await driver.findElement(By.id("search")).sendKeys("купить квартиру");
-    await driver.findElement(By.xpath("/html/body/div[1]/div[1]/div[2]/div[2]/div/div[3]/button")).click(); // Кликаем "Найти"
-    // await driver.wait(until.titleIs('Купить квартиру в Воронеже на Avito — Объявления на сайте Авито'), 10000);
-    await driver.findElement(By.xpath("/html/body/div[1]/div[2]/div[2]/div[3]/div[2]/div[2]/select/option[2]")).click(); // Выбираем фильтр Дешевле. Здесь по-хорошему сделать небольшой таймаут.
-    await driver.findElement(By.xpath("/html/body/div[1]/div[2]/div[2]/div[1]/div/div[2]/div[1]/form/div[4]/div/div[2]/div/div/div/div/div/label[2]/input")).sendKeys("10000000"); // Фильтр цены
-    await driver.findElement(By.xpath("/html/body/div[1]/div[2]/div[2]/div[1]/div/div[2]/div[1]/form/div[3]/div/div[2]/div/div/div/div/ul/li[5]/label/span")).click(); // Отмечаем чекбокс
-    // Не получилось реализовать передвижение слайдера метража. Понял, что как-то делается через dragAndDropBy и экшены, но не смог разобраться в синтаксисе.
-    await driver.findElement(By.xpath("/html/body/div[1]/div[2]/div[2]/div[1]/div/div[2]/div[2]/button")).click(); // Кликаем показ объявлений
-    await driver.findElement(By.xpath("/html/body/div[1]/div[2]/div[2]/div[3]/div[4]/div/div[1]/div[2]/div/div[2]/div[1]/div[1]/div[1]/h3/a")).click(); // Кликаем на первое объявление
-    if (driver.wait(until.elementLocated(By.xpath("/html/body/div[3]/div[1]/div[3]/div[3]/div[1]/div[2]/div[1]/div[1]/div[1]/div[1]/div[2]/div/span"), 10000))) {
-        console.log("Passed");
-    } else {
-        console.log("Failed");
-    }
-    driver.quit(); // Сделано неправильно, но пока научился только так.
-}
-example();
+/*describe('Test Avito', async function() {
+    before(() => {
+        let driver = await new Builder().forBrowser("chrome").build();
+        await driver.manage().window().maximize();
+    });
 
-// Ушло на это около 4-5 дней. Многое недопонято или сделано через костыли, но при наличии нескольких наглядных конкретных примеров кода думаю результат был бы лучше :)
+    after(function() {
+        driver.quit();
+    }); */
+
+    async function testavito() {
+        let driver = await new Builder().forBrowser("chrome").build();
+        await driver.manage().window().maximize();
+        await driver.get("https://www.avito.ru/voronezh");
+        await driver.findElement(By.css("#search")).sendKeys("купить квартиру");
+        await driver.findElement(By.xpath("//button[@data-marker='search-form/submit-button']")).click(); // Кликаем "Найти"
+        await driver.manage().setTimeouts( { implicit: 7000 } );
+        await driver.findElement(By.xpath("//option[text()='Дешевле']")).click(); // Выбираем фильтр "Дешевле"
+        await driver.manage().setTimeouts( { implicit: 10000 } );
+        // await driver.wait(until.elementLocated(By.css('.input-input-25uCh')));
+        await driver.findElement(By.xpath("//input[@data-marker='price/to']")).sendKeys("10000000", Key.ENTER); // Выставляем ценовой фильтр
+        await driver.manage().setTimeouts( { implicit: 5000 } );
+        await driver.findElement(By.xpath("//span[@data-marker='params[549](5698)/text']")).click(); // Отмечаем чекбокс 3-комн кв.
+        await driver.findElement(By.xpath("//button[@data-marker='search-filters/submit-button']")).click(); // Кликаем "Показать X объявлений"
+        let mainWindow = await driver.getWindowHandle();
+        await driver.findElement(By.xpath("(//li[@class='item-slider-item js-item-slider-item '])[1]")).click(); // Кликаем на первое объявление в списке
+        await driver.manage().setTimeouts( { implicit: 5000 } );
+
+        let windows = await driver.getAllWindowHandles();
+        windows.forEach(async handle => {
+            if (handle !== mainWindow) {
+            await driver.switchTo().window(handle);
+            }
+        });
+
+        if (driver.findElement(By.xpath("//span[@class='gallery-img-cover']"))) {
+            console.log("Passed");
+            assert.isOk('Passed');
+            driver.quit();
+        } else {
+            console.log("Failed");
+            assert.fail(driver.quit());
+            }
+        }
+//});
+testavito();

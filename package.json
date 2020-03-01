@@ -1,7 +1,7 @@
 {
-  "name": "seleniumexample",
+  "name": "testavito",
   "version": "1.0.0",
-  "description": "Selenium Example Project",
+  "description": "Avito TestCase",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
@@ -10,6 +10,9 @@
   "license": "ISC",
   "keywords": [],
   "dependencies": {
+    "chai": "^4.2.0",
+    "jasmine-core": "^3.5.0",
+    "mocha": "^7.1.0",
     "selenium-webdriver": "^4.0.0-alpha.5"
   }
 }
